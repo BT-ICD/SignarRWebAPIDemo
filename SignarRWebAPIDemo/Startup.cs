@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using SignarRWebAPIDemo.MyHub;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +29,18 @@ namespace SignarRWebAPIDemo
         {
 
             services.AddControllers();
+            //SignalR - required CORS with Origin specification.  http://localhost:4200
+            services.AddCors(options=>
+            {
+                options.AddPolicy("MYCORSPOLICY",
+                    builder=>
+                    {
+                        builder.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+                    });
+            });
+            //To add SignalR - This should be added after AddCors 
+            services.AddSignalR();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SignarRWebAPIDemo", Version = "v1" });
@@ -47,12 +60,16 @@ namespace SignarRWebAPIDemo
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseCors("MYCORSPOLICY");
 
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                //endpoints.MapControllers();
+                endpoints.MapControllers().RequireCors("MYCORSPOLICY");
+                endpoints.MapHub<MessageHub>("/messagehub");
+
             });
         }
     }
