@@ -1,12 +1,17 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using SignarRWebAPIDemo.AppRepository;
+using SignarRWebAPIDemo.AuthData;
+using SignarRWebAPIDemo.DataContext;
 using SignarRWebAPIDemo.MyHub;
 using System;
 using System.Collections.Generic;
@@ -41,6 +46,18 @@ namespace SignarRWebAPIDemo
             //To add SignalR - This should be added after AddCors 
             services.AddSignalR();
 
+            services.AddDbContext<SignalRLearningDBContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("cnn"))
+            );
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<SignalRLearningDBContext>()
+                .AddDefaultTokenProviders();
+            //Authenticate Repository and Token options as dependency injection
+            services.AddScoped<IAuthenticate, AuthenticateRepository>();
+            services.AddScoped<IAppUser, AppUserRepository>();
+
+            services.Configure<TokenSettingsOptions>(Configuration.GetSection(TokenSettingsOptions.TokenSettings));
+            services.AddScoped<TokenGenerator>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SignarRWebAPIDemo", Version = "v1" });
