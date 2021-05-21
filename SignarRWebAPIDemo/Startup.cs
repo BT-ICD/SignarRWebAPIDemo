@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SignarRWebAPIDemo.AppRepository;
 using SignarRWebAPIDemo.AuthData;
@@ -16,6 +18,7 @@ using SignarRWebAPIDemo.MyHub;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SignarRWebAPIDemo
@@ -43,8 +46,7 @@ namespace SignarRWebAPIDemo
                         builder.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
                     });
             });
-            //To add SignalR - This should be added after AddCors 
-            services.AddSignalR();
+            
 
             services.AddDbContext<SignalRLearningDBContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("cnn"))
@@ -58,6 +60,54 @@ namespace SignarRWebAPIDemo
 
             services.Configure<TokenSettingsOptions>(Configuration.GetSection(TokenSettingsOptions.TokenSettings));
             services.AddScoped<TokenGenerator>();
+
+            //Authentication
+            services.AddAuthentication(
+                options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+
+                }
+                ).AddJwtBearer(
+                options =>
+                {
+                    options.SaveToken = true;
+                    options.RequireHttpsMetadata = false;
+                    //options.Audience = "GrowthApp";
+                    options.TokenValidationParameters = new TokenValidationParameters()
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = "SignalRWebAPI",
+                        ValidAudience = "SignalRWebAPI",
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("aaaaaaaaaaaaaaaa"))
+                    };
+                    //Authentication token for hub
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+
+                            // If the request is for our hub...
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                (path.StartsWithSegments("/messagehub")))
+                            {
+                                // Read the token out of the query string
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+            //To add SignalR - This should be added after AddCors 
+            services.AddSignalR();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SignarRWebAPIDemo", Version = "v1" });
@@ -78,6 +128,8 @@ namespace SignarRWebAPIDemo
 
             app.UseRouting();
             app.UseCors("MYCORSPOLICY");
+            //Authentication
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
