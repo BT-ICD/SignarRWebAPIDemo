@@ -17,11 +17,7 @@ namespace SignarRWebAPIDemo.Controllers
         [HttpGet]
         public IActionResult GetList()
         {
-            List<Dept> list = new List<Dept>()
-            {
-                new Dept(){Id=10, Name="Accounting", Loc="Dallas"},
-                new Dept(){Id=20, Name="Research", Loc="New Jersey"}
-            };
+            var list = Dept.list;
             return Ok(list);
         }
     }
