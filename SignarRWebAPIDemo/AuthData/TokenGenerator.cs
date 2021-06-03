@@ -17,7 +17,7 @@ namespace SignarRWebAPIDemo.AuthData
         {
             this.options = options.Value;
         }
-        public TokenModel GenerateToken(string userName, string userRole)
+        public TokenModel GenerateToken(string userName, string userRole, string userEmail)
         {
             var tokenString = "";
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -27,7 +27,8 @@ namespace SignarRWebAPIDemo.AuthData
                 Subject = new ClaimsIdentity(
                     new Claim[] {
                         new Claim(ClaimTypes.Name, userName),
-                        new Claim(ClaimTypes.Role, userRole)
+                        new Claim(ClaimTypes.Role, userRole),
+                        new Claim(ClaimTypes.Email, userEmail)
                     }),
                 Audience = options.Audience,
                 Issuer = options.Issuer,

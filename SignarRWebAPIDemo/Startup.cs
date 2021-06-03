@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -107,7 +108,7 @@ namespace SignarRWebAPIDemo
                 });
             //To add SignalR - This should be added after AddCors 
             services.AddSignalR();
-
+            services.AddSingleton<IUserIdProvider, EmailBasedUserIdProvider>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SignarRWebAPIDemo", Version = "v1" });

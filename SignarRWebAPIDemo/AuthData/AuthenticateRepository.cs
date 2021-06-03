@@ -26,7 +26,7 @@ namespace SignarRWebAPIDemo.AuthData
                 var roles = await userManager.GetRolesAsync(user);
                 if (roles.Count == 1)
                 {
-                    var result = tokenGenerator.GenerateToken(user.UserName, roles[0]);
+                    var result = tokenGenerator.GenerateToken(user.UserName, roles[0], user.Email);
                     return result;
                 }
                 return null;

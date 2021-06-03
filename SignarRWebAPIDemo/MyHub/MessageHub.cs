@@ -24,6 +24,9 @@ namespace SignarRWebAPIDemo.MyHub
         public override async Task OnConnectedAsync()
         {
             var userName = this.Context.User.Identity.Name;
+            var userIdentifier = this.Context.UserIdentifier;
+            
+
             var data = new HubUserData { UserName = userName, Status = 1, UpdatedOn = DateTime.Now };
             
             HubUserData.list.Add(data);
@@ -36,7 +39,7 @@ namespace SignarRWebAPIDemo.MyHub
                 HubUserData.connectedList.Add(data.UserName, data);
             }
 
-            logger.LogInformation($"User connected: {userName}");
+            logger.LogInformation($"User connected: {userName} with userIdentifier is {userIdentifier}");
             await base.OnConnectedAsync();
         }
         public override async Task OnDisconnectedAsync(Exception exception)
