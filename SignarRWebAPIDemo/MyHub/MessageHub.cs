@@ -40,6 +40,7 @@ namespace SignarRWebAPIDemo.MyHub
             }
 
             logger.LogInformation($"User connected: {userName} with userIdentifier is {userIdentifier}");
+            await SendOnlineUsers();
             await base.OnConnectedAsync();
         }
         public override async Task OnDisconnectedAsync(Exception exception)
@@ -49,8 +50,13 @@ namespace SignarRWebAPIDemo.MyHub
             HubUserData.list.Add(data);
             HubUserData.connectedList.Remove(data.UserName);
             logger.LogInformation($"User disconnected: {userName}");
+            await SendOnlineUsers();
             await base.OnDisconnectedAsync(exception);
         }
-
+        public Task SendOnlineUsers()
+        {
+            var list = HubUserData.connectedList.Select(x => x.Value);
+            return Clients.All.SendAsync("getOnlineUsers", list);
+        }
     }
 }
