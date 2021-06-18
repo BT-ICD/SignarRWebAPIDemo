@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SignarRWebAPIDemo.AuthData;
+using SignarRWebAPIDemo.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +32,12 @@ namespace SignarRWebAPIDemo.Controllers.Authentication
         public async Task<IActionResult> Login(LoginModel login)
         {
             logger.LogInformation($"Login requested: {login.UserName}");
+            //To restrict multiple login
+            if (HubUserData.connectedList.ContainsKey(login.UserName.ToUpper()))
+            {
+                return new StatusCodeResult(StatusCodes.Status429TooManyRequests);
+            }
+            
             var result = await authenticate.AuthenticateUser(login);
             if (result == null)
                 return Unauthorized();

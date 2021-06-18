@@ -15,6 +15,7 @@ using Microsoft.OpenApi.Models;
 using SignarRWebAPIDemo.AppRepository;
 using SignarRWebAPIDemo.AuthData;
 using SignarRWebAPIDemo.DataContext;
+using SignarRWebAPIDemo.HubFilter;
 using SignarRWebAPIDemo.MyHub;
 using System;
 using System.Collections.Generic;
@@ -107,7 +108,13 @@ namespace SignarRWebAPIDemo
                     };
                 });
             //To add SignalR - This should be added after AddCors 
-            services.AddSignalR();
+            services.AddSignalR(options =>
+            {
+                options.AddFilter<CustomHubFilter>();
+            });
+            //    .AddHubOptions<MessageHub>(options=> {
+            //    options.AddFilter(new CustomHubFilter());
+            //});
             services.AddSingleton<IUserIdProvider, EmailBasedUserIdProvider>();
             services.AddSwaggerGen(c =>
             {
@@ -133,11 +140,12 @@ namespace SignarRWebAPIDemo
             app.UseAuthentication();
 
             app.UseAuthorization();
-
+            //app.UseMiddleware<CustomMiddleware>();
             app.UseEndpoints(endpoints =>
             {
                 //endpoints.MapControllers();
                 endpoints.MapControllers().RequireCors("MYCORSPOLICY");
+                
                 endpoints.MapHub<MessageHub>("/messagehub");
 
             });

@@ -13,6 +13,7 @@ namespace SignarRWebAPIDemo.Model
 
         public static List<HubUserData> list= new List<HubUserData>();
         public static Dictionary<string, HubUserData> connectedList= new Dictionary<string, HubUserData>();
-
+        public readonly static ConnectionMapping _connections =
+        new ConnectionMapping();
     }
 }
